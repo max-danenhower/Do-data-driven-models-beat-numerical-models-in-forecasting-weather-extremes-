@@ -37,6 +37,7 @@ wind_speed = ERA5[variables_s[1]]
 cos_weights=np.cos(np.deg2rad(ERA5.latitude))
 cos_weights=np.tile(cos_weights/np.mean(cos_weights), len(ERA5.time)*len(ERA5.longitude))
 
+
 #%% IFS HRES truth
 
 HRES_truth=xr.open_zarr('gs://weatherbench2/datasets/hres/2016-2022-0012-240x121_equiangular_with_poles_conservative.zarr', chunks= {'time':8})

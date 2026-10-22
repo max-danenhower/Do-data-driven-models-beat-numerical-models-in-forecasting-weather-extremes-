@@ -12,10 +12,11 @@ Created on Wed Mar  6 11:54:26 2024
 from datetime import date, datetime
 from plotnine import *
 import pandas as pd
-import patchworklib as pw
+#import patchworklib as pw
 import geopandas as gpd
 from scipy.stats import t
 import statsmodels
+import numpy as np
 
 
 #%% Data preparation 
@@ -29,39 +30,39 @@ def prep_time_loc(theoretical, HRES_truth, nwp_det, AI_det_1, AI_det_2, AI_det_3
     if lower_latitude>upper_latitude:
         
         theoretical=theoretical.where(np.logical_or(theoretical['latitude'] >= lower_latitude, theoretical['latitude'] <= upper_latitude), drop=True)
-        HRES_truth=HRES_truth.where(np.logical_or(HRES_truth['latitude'] >= lower_latitude, HRES_truth['latitude'] <= upper_latitude), drop=True)
+        #HRES_truth=HRES_truth.where(np.logical_or(HRES_truth['latitude'] >= lower_latitude, HRES_truth['latitude'] <= upper_latitude), drop=True)
         nwp_det=nwp_det.where(np.logical_or(nwp_det['latitude'] >= lower_latitude, nwp_det['latitude'] <= upper_latitude), drop=True)
         AI_det_1=AI_det_1.where(np.logical_or(AI_det_1['latitude'] >= lower_latitude, AI_det_1['latitude'] <= upper_latitude), drop=True)
-        AI_det_2=AI_det_2.where(np.logical_or(AI_det_2['latitude'] >= lower_latitude, AI_det_2['latitude'] <= upper_latitude), drop=True)
+        #AI_det_2=AI_det_2.where(np.logical_or(AI_det_2['latitude'] >= lower_latitude, AI_det_2['latitude'] <= upper_latitude), drop=True)
         if operational_comp==False:
             AI_det_3=AI_det_3.where(np.logical_or(AI_det_3['latitude'] >= lower_latitude, AI_det_3['latitude'] <= upper_latitude), drop=True)
         
     else:
     
         theoretical=theoretical.where(np.logical_and(theoretical['latitude'] >= lower_latitude, theoretical['latitude'] <= upper_latitude), drop=True)
-        HRES_truth=HRES_truth.where(np.logical_and(HRES_truth['latitude'] >= lower_latitude, HRES_truth['latitude'] <= upper_latitude), drop=True)
+        #HRES_truth=HRES_truth.where(np.logical_and(HRES_truth['latitude'] >= lower_latitude, HRES_truth['latitude'] <= upper_latitude), drop=True)
         nwp_det=nwp_det.where(np.logical_and(nwp_det['latitude'] >= lower_latitude, nwp_det['latitude'] <= upper_latitude), drop=True)
         AI_det_1=AI_det_1.where(np.logical_and(AI_det_1['latitude'] >= lower_latitude, AI_det_1['latitude'] <= upper_latitude), drop=True)
-        AI_det_2=AI_det_2.where(np.logical_and(AI_det_2['latitude'] >= lower_latitude, AI_det_2['latitude'] <= upper_latitude), drop=True)
+        #AI_det_2=AI_det_2.where(np.logical_and(AI_det_2['latitude'] >= lower_latitude, AI_det_2['latitude'] <= upper_latitude), drop=True)
         if operational_comp==False:
             AI_det_3=AI_det_3.where(np.logical_and(AI_det_3['latitude'] >= lower_latitude, AI_det_3['latitude'] <= upper_latitude), drop=True)
         
     if lower_longitude>upper_longitude:
         
         theoretical=theoretical.where(np.logical_or(theoretical['longitude'] >= lower_longitude, theoretical['longitude'] <= upper_longitude), drop=True)
-        HRES_truth=HRES_truth.where(np.logical_or(HRES_truth['longitude'] >= lower_longitude, HRES_truth['longitude'] <= upper_longitude), drop=True)
+        #HRES_truth=HRES_truth.where(np.logical_or(HRES_truth['longitude'] >= lower_longitude, HRES_truth['longitude'] <= upper_longitude), drop=True)
         nwp_det=nwp_det.where(np.logical_or(nwp_det['longitude'] >= lower_longitude, nwp_det['longitude'] <= upper_longitude), drop=True)
         AI_det_1=AI_det_1.where(np.logical_or(AI_det_1['longitude'] >= lower_longitude, AI_det_1['longitude'] <= upper_longitude), drop=True)
-        AI_det_2=AI_det_2.where(np.logical_or(AI_det_2['longitude'] >= lower_longitude, AI_det_2['longitude'] <= upper_longitude), drop=True)
+        #AI_det_2=AI_det_2.where(np.logical_or(AI_det_2['longitude'] >= lower_longitude, AI_det_2['longitude'] <= upper_longitude), drop=True)
         if operational_comp==False:
             AI_det_3=AI_det_3.where(np.logical_or(AI_det_3['longitude'] >= lower_longitude, AI_det_3['longitude'] <= upper_longitude), drop=True)
         
     else:
         theoretical=theoretical.where(np.logical_and(theoretical['longitude'] >= lower_longitude, theoretical['longitude'] <= upper_longitude), drop=True)
-        HRES_truth=HRES_truth.where(np.logical_and(HRES_truth['longitude'] >= lower_longitude, HRES_truth['longitude'] <= upper_longitude), drop=True)
+        #HRES_truth=HRES_truth.where(np.logical_and(HRES_truth['longitude'] >= lower_longitude, HRES_truth['longitude'] <= upper_longitude), drop=True)
         nwp_det=nwp_det.where(np.logical_and(nwp_det['longitude'] >= lower_longitude, nwp_det['longitude'] <= upper_longitude), drop=True)
         AI_det_1=AI_det_1.where(np.logical_and(AI_det_1['longitude'] >= lower_longitude, AI_det_1['longitude'] <= upper_longitude), drop=True)
-        AI_det_2=AI_det_2.where(np.logical_and(AI_det_2['longitude'] >= lower_longitude, AI_det_2['longitude'] <= upper_longitude), drop=True)
+        #AI_det_2=AI_det_2.where(np.logical_and(AI_det_2['longitude'] >= lower_longitude, AI_det_2['longitude'] <= upper_longitude), drop=True)
         if operational_comp==False:
             AI_det_3=AI_det_3.where(np.logical_and(AI_det_3['longitude'] >= lower_longitude, AI_det_3['longitude'] <= upper_longitude), drop=True)
         
@@ -77,12 +78,13 @@ def prep_time_loc(theoretical, HRES_truth, nwp_det, AI_det_1, AI_det_2, AI_det_3
 
 
 def write_data (dat, operational_comp=True):
-
     theoretical=dat[0].values.flatten()
-    HRES_truth=dat[1].values.flatten()
+    #HRES_truth=dat[1].values.flatten()
+    HRES_truth = None
     nwp_det=dat[2].values.flatten()
     AI_det_1=dat[3].values.flatten()
-    AI_det_2=dat[4].values.flatten()
+    #AI_det_2=dat[4].values.flatten()
+    AI_det_2 = None
     if operational_comp==False:
         AI_det_3=dat[5].values.flatten()
         
@@ -104,11 +106,11 @@ def prep_all (theoretical, HRES_truth, nwp_det, AI_det_1, AI_det_2, AI_det_3=Non
     end_theoretical=datetime(2020, 12, 16+deltatime+1, 12, 00, 00)
     
     theoretical=theoretical.sel( time=slice(start_theoretical,end_theoretical))
-    HRES_truth=HRES_truth.sel( time=slice(start_theoretical,end_theoretical))
+    #HRES_truth=HRES_truth.sel( time=slice(start_theoretical,end_theoretical))
     
     nwp_det = nwp_det.isel(prediction_timedelta = deltatime)
     AI_det_1 = AI_det_1.isel(prediction_timedelta = deltatime)
-    AI_det_2 = AI_det_2.isel(prediction_timedelta = deltatime)
+    #AI_det_2 = AI_det_2.isel(prediction_timedelta = deltatime)
     if operational_comp==False:
         AI_det_3 = AI_det_3.isel(prediction_timedelta = deltatime)
     

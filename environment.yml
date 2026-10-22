@@ -1,0 +1,19 @@
+name: weatherbench
+channels:
+  - defaults
+dependencies:
+  - zarr
+  - linearmodels
+  - numpy
+  - scipy
+  - python=3.11
+  - geopandas
+  - plotnine
+  - statsmodels
+  - xarray
+  - ipykernel
+  - fsspec
+  - gcsfs
+  - seaborn
+  - patchworklib
+prefix: C:\Users\123\miniconda3\envs\weatherbench
