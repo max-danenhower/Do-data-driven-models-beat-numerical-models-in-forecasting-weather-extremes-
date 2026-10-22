@@ -17,6 +17,8 @@ import geopandas as gpd
 from scipy.stats import t
 import statsmodels
 import numpy as np
+import linearmodels as lm
+
 
 
 #%% Data preparation 
@@ -30,39 +32,39 @@ def prep_time_loc(theoretical, HRES_truth, nwp_det, AI_det_1, AI_det_2, AI_det_3
     if lower_latitude>upper_latitude:
         
         theoretical=theoretical.where(np.logical_or(theoretical['latitude'] >= lower_latitude, theoretical['latitude'] <= upper_latitude), drop=True)
-        #HRES_truth=HRES_truth.where(np.logical_or(HRES_truth['latitude'] >= lower_latitude, HRES_truth['latitude'] <= upper_latitude), drop=True)
+        HRES_truth=HRES_truth.where(np.logical_or(HRES_truth['latitude'] >= lower_latitude, HRES_truth['latitude'] <= upper_latitude), drop=True)
         nwp_det=nwp_det.where(np.logical_or(nwp_det['latitude'] >= lower_latitude, nwp_det['latitude'] <= upper_latitude), drop=True)
         AI_det_1=AI_det_1.where(np.logical_or(AI_det_1['latitude'] >= lower_latitude, AI_det_1['latitude'] <= upper_latitude), drop=True)
-        #AI_det_2=AI_det_2.where(np.logical_or(AI_det_2['latitude'] >= lower_latitude, AI_det_2['latitude'] <= upper_latitude), drop=True)
+        AI_det_2=AI_det_2.where(np.logical_or(AI_det_2['latitude'] >= lower_latitude, AI_det_2['latitude'] <= upper_latitude), drop=True)
         if operational_comp==False:
             AI_det_3=AI_det_3.where(np.logical_or(AI_det_3['latitude'] >= lower_latitude, AI_det_3['latitude'] <= upper_latitude), drop=True)
         
     else:
     
         theoretical=theoretical.where(np.logical_and(theoretical['latitude'] >= lower_latitude, theoretical['latitude'] <= upper_latitude), drop=True)
-        #HRES_truth=HRES_truth.where(np.logical_and(HRES_truth['latitude'] >= lower_latitude, HRES_truth['latitude'] <= upper_latitude), drop=True)
+        HRES_truth=HRES_truth.where(np.logical_and(HRES_truth['latitude'] >= lower_latitude, HRES_truth['latitude'] <= upper_latitude), drop=True)
         nwp_det=nwp_det.where(np.logical_and(nwp_det['latitude'] >= lower_latitude, nwp_det['latitude'] <= upper_latitude), drop=True)
         AI_det_1=AI_det_1.where(np.logical_and(AI_det_1['latitude'] >= lower_latitude, AI_det_1['latitude'] <= upper_latitude), drop=True)
-        #AI_det_2=AI_det_2.where(np.logical_and(AI_det_2['latitude'] >= lower_latitude, AI_det_2['latitude'] <= upper_latitude), drop=True)
+        AI_det_2=AI_det_2.where(np.logical_and(AI_det_2['latitude'] >= lower_latitude, AI_det_2['latitude'] <= upper_latitude), drop=True)
         if operational_comp==False:
             AI_det_3=AI_det_3.where(np.logical_and(AI_det_3['latitude'] >= lower_latitude, AI_det_3['latitude'] <= upper_latitude), drop=True)
         
     if lower_longitude>upper_longitude:
         
         theoretical=theoretical.where(np.logical_or(theoretical['longitude'] >= lower_longitude, theoretical['longitude'] <= upper_longitude), drop=True)
-        #HRES_truth=HRES_truth.where(np.logical_or(HRES_truth['longitude'] >= lower_longitude, HRES_truth['longitude'] <= upper_longitude), drop=True)
+        HRES_truth=HRES_truth.where(np.logical_or(HRES_truth['longitude'] >= lower_longitude, HRES_truth['longitude'] <= upper_longitude), drop=True)
         nwp_det=nwp_det.where(np.logical_or(nwp_det['longitude'] >= lower_longitude, nwp_det['longitude'] <= upper_longitude), drop=True)
         AI_det_1=AI_det_1.where(np.logical_or(AI_det_1['longitude'] >= lower_longitude, AI_det_1['longitude'] <= upper_longitude), drop=True)
-        #AI_det_2=AI_det_2.where(np.logical_or(AI_det_2['longitude'] >= lower_longitude, AI_det_2['longitude'] <= upper_longitude), drop=True)
+        AI_det_2=AI_det_2.where(np.logical_or(AI_det_2['longitude'] >= lower_longitude, AI_det_2['longitude'] <= upper_longitude), drop=True)
         if operational_comp==False:
             AI_det_3=AI_det_3.where(np.logical_or(AI_det_3['longitude'] >= lower_longitude, AI_det_3['longitude'] <= upper_longitude), drop=True)
         
     else:
         theoretical=theoretical.where(np.logical_and(theoretical['longitude'] >= lower_longitude, theoretical['longitude'] <= upper_longitude), drop=True)
-        #HRES_truth=HRES_truth.where(np.logical_and(HRES_truth['longitude'] >= lower_longitude, HRES_truth['longitude'] <= upper_longitude), drop=True)
+        HRES_truth=HRES_truth.where(np.logical_and(HRES_truth['longitude'] >= lower_longitude, HRES_truth['longitude'] <= upper_longitude), drop=True)
         nwp_det=nwp_det.where(np.logical_and(nwp_det['longitude'] >= lower_longitude, nwp_det['longitude'] <= upper_longitude), drop=True)
         AI_det_1=AI_det_1.where(np.logical_and(AI_det_1['longitude'] >= lower_longitude, AI_det_1['longitude'] <= upper_longitude), drop=True)
-        #AI_det_2=AI_det_2.where(np.logical_and(AI_det_2['longitude'] >= lower_longitude, AI_det_2['longitude'] <= upper_longitude), drop=True)
+        AI_det_2=AI_det_2.where(np.logical_and(AI_det_2['longitude'] >= lower_longitude, AI_det_2['longitude'] <= upper_longitude), drop=True)
         if operational_comp==False:
             AI_det_3=AI_det_3.where(np.logical_and(AI_det_3['longitude'] >= lower_longitude, AI_det_3['longitude'] <= upper_longitude), drop=True)
         
@@ -79,12 +81,10 @@ def prep_time_loc(theoretical, HRES_truth, nwp_det, AI_det_1, AI_det_2, AI_det_3
 
 def write_data (dat, operational_comp=True):
     theoretical=dat[0].values.flatten()
-    #HRES_truth=dat[1].values.flatten()
-    HRES_truth = None
+    HRES_truth=dat[1].values.flatten()
     nwp_det=dat[2].values.flatten()
     AI_det_1=dat[3].values.flatten()
-    #AI_det_2=dat[4].values.flatten()
-    AI_det_2 = None
+    AI_det_2=dat[4].values.flatten()
     if operational_comp==False:
         AI_det_3=dat[5].values.flatten()
         
@@ -106,11 +106,11 @@ def prep_all (theoretical, HRES_truth, nwp_det, AI_det_1, AI_det_2, AI_det_3=Non
     end_theoretical=datetime(2020, 12, 16+deltatime+1, 12, 00, 00)
     
     theoretical=theoretical.sel( time=slice(start_theoretical,end_theoretical))
-    #HRES_truth=HRES_truth.sel( time=slice(start_theoretical,end_theoretical))
+    HRES_truth=HRES_truth.sel( time=slice(start_theoretical,end_theoretical))
     
     nwp_det = nwp_det.isel(prediction_timedelta = deltatime)
     AI_det_1 = AI_det_1.isel(prediction_timedelta = deltatime)
-    #AI_det_2 = AI_det_2.isel(prediction_timedelta = deltatime)
+    AI_det_2 = AI_det_2.isel(prediction_timedelta = deltatime)
     if operational_comp==False:
         AI_det_3 = AI_det_3.isel(prediction_timedelta = deltatime)
     
@@ -304,14 +304,17 @@ def comp_RMSE_tail(dat, dat_mem, operational_comp, greater, HRES_ground,quant=No
                  cos_weights_quant=cos_weights[theoretical<np.quantile(theoretical,quant)]
                  
                  if robust==True:
+                     print('robust block')
                      lat=lat[theoretical<np.quantile(theoretical,quant)]
                      lon=lon[theoretical<np.quantile(theoretical,quant)]
                      time=time[theoretical<np.quantile(theoretical,quant)]
+                     print('end block')
                  
         
                  if HRES_ground==True:
+                      print('dog')
                       HRES_truth_variable_quant=HRES_truth[theoretical<np.quantile(theoretical,quant)]
-        
+                 print('maybe')
                  HRES_variable_quant=nwp_det[theoretical<np.quantile(theoretical,quant)]
                  
                  if operational_comp==False: 
@@ -319,11 +322,14 @@ def comp_RMSE_tail(dat, dat_mem, operational_comp, greater, HRES_ground,quant=No
                      fuxi_variable_quant=AI_det_2[theoretical<np.quantile(theoretical,quant)]
                      graphcast_variable_quant=AI_det_3[theoretical<np.quantile(theoretical,quant)]
                  else:
+                     print('here again')
                      pangu_variable_quant=AI_det_1[theoretical<np.quantile(theoretical,quant)]
+                     print('da one')
                      graphcast_variable_quant=AI_det_2[theoretical<np.quantile(theoretical,quant)]
-                     
+                     print('last line before plz')
+
+    print('plz')
     if operational_comp==False:
-        
         
         if HRES_ground==True:
             
@@ -331,16 +337,12 @@ def comp_RMSE_tail(dat, dat_mem, operational_comp, greater, HRES_ground,quant=No
             
             RMSE_tail_HRES=(sum(cos_weights_quant*(HRES_variable_quant-HRES_truth_variable_quant)**2)/len(variable_quant))**(1/2)
         else:
-
             sq_err_HRES=(HRES_variable_quant-variable_quant)**2
-            
             RMSE_tail_HRES=(sum(cos_weights_quant*(HRES_variable_quant-variable_quant)**2)/len(variable_quant))**(1/2)
             
-
         sq_err_pangu=(pangu_variable_quant-variable_quant)**2
         sq_err_graphcast=(graphcast_variable_quant-variable_quant)**2
         sq_err_fuxi=(fuxi_variable_quant-variable_quant)**2 
-            
         RMSE_tail_pangu=(sum(cos_weights_quant*(pangu_variable_quant-variable_quant)**2)/len(variable_quant))**(1/2)
         RMSE_tail_graphcast=(sum(cos_weights_quant*(graphcast_variable_quant-variable_quant)**2)/len(variable_quant))**(1/2)
         RMSE_tail_fuxi=(sum(cos_weights_quant*(fuxi_variable_quant-variable_quant)**2)/len(variable_quant))**(1/2)
@@ -352,7 +354,6 @@ def comp_RMSE_tail(dat, dat_mem, operational_comp, greater, HRES_ground,quant=No
         diff_pangu=sq_err_pangu-sq_err_HRES
         diff_graphcast=sq_err_graphcast-sq_err_HRES
         diff_fuxi=sq_err_fuxi-sq_err_HRES
-        
             
         dat_pangu = pd.DataFrame({
         'Latitude': lat,
@@ -375,7 +376,6 @@ def comp_RMSE_tail(dat, dat_mem, operational_comp, greater, HRES_ground,quant=No
         
         
         del dat_pangu, model_cluster_pangu
-        
         
         dat_graphcast = pd.DataFrame({
         'Latitude': lat,
@@ -417,8 +417,8 @@ def comp_RMSE_tail(dat, dat_mem, operational_comp, greater, HRES_ground,quant=No
         del dat_fuxi, model_cluster_fuxi
             
                 
-        threshold_low=stats.t(df=len(variable_quant)).ppf((0.025))
-        threshold_high=stats.t(df=len(variable_quant)).ppf((0.975))
+        threshold_low=t(df=len(variable_quant)).ppf((0.025))
+        threshold_high=t(df=len(variable_quant)).ppf((0.975))
         
         significant_pangu= np.where((test_st_pangu > threshold_high) | (test_st_pangu < threshold_low),1,0)
         significant_graphcast= np.where((test_st_graphcast > threshold_high) | (test_st_graphcast < threshold_low),1,0)
@@ -429,7 +429,7 @@ def comp_RMSE_tail(dat, dat_mem, operational_comp, greater, HRES_ground,quant=No
         #Best model significance test
         
         
-        threshold_low_one=stats.t(df=len(variable_quant)).ppf((0.05))
+        threshold_low_one=t(df=len(variable_quant)).ppf((0.05))
 
         
         if ((RMSE_tail_pangu<RMSE_tail_HRES) and (RMSE_tail_pangu<RMSE_tail_graphcast) and (RMSE_tail_pangu<RMSE_tail_fuxi) ):
@@ -616,6 +616,7 @@ def comp_RMSE_tail(dat, dat_mem, operational_comp, greater, HRES_ground,quant=No
         return RMSE_tail_HRES, RMSE_tail_pangu, RMSE_tail_fuxi, RMSE_tail_graphcast, significant_pangu, significant_fuxi, significant_graphcast, significant_best
         
     else:
+        print('true')
 
         if HRES_ground==True:
             
@@ -687,7 +688,8 @@ def comp_RMSE_tail(dat, dat_mem, operational_comp, greater, HRES_ground,quant=No
             test_st_graphcast=(mean_cos_diff_graphcast*len(diff_graphcast)**(1/2))/(var_cos_diff_graphcast)**(1/2)
             
         else:
-            
+            print('start robust block')
+            print('init pangu pd')
             dat_pangu = pd.DataFrame({
             'Latitude': lat,
             'Longitude': lon,
@@ -696,13 +698,13 @@ def comp_RMSE_tail(dat, dat_mem, operational_comp, greater, HRES_ground,quant=No
             })
             
             dat_pangu['Latlon']=round(dat_pangu['Latitude'],2).astype(str)+round(dat_pangu['Longitude'],2).astype(str)
-
+            print('start pangu panel ols')
             model_cluster_pangu = lm.PanelOLS.from_formula(
               formula=("Predicted ~ 1"),
               data=dat_pangu.set_index(["Latlon", "Time"]),
             ).fit(cov_type="clustered", cluster_entity=True, cluster_time=True)
 
-
+            print('done')
             test_st_pangu=model_cluster_pangu.tstats[0]
             
             
@@ -729,15 +731,15 @@ def comp_RMSE_tail(dat, dat_mem, operational_comp, greater, HRES_ground,quant=No
             del dat_graphcast, model_cluster_graphcast
             
                 
-        threshold_low=stats.t(df=len(variable_quant)).ppf((0.025))
-        threshold_high=stats.t(df=len(variable_quant)).ppf((0.975))
+        threshold_low=t(df=len(variable_quant)).ppf((0.025))
+        threshold_high=t(df=len(variable_quant)).ppf((0.975))
         
         significant_pangu= np.where((test_st_pangu > threshold_high) | (test_st_pangu < threshold_low),1,0)
         significant_graphcast= np.where((test_st_graphcast > threshold_high) | (test_st_graphcast < threshold_low),1,0)
         
         # Best model significance test
         
-        threshold_low_one=stats.t(df=len(variable_quant)).ppf((0.05))
+        threshold_low_one=t(df=len(variable_quant)).ppf((0.05))
         
         if ((RMSE_tail_pangu<RMSE_tail_HRES) and (RMSE_tail_pangu<RMSE_tail_graphcast)):
             
@@ -828,7 +830,6 @@ def comp_RMSE_tail(dat, dat_mem, operational_comp, greater, HRES_ground,quant=No
                 
                 significant_best=np.where(((-test_st_graphcast) < threshold_low_one),1,0)
                     
-
         return RMSE_tail_HRES, RMSE_tail_pangu, RMSE_tail_graphcast, significant_pangu, significant_graphcast, significant_best
     
 
@@ -838,6 +839,7 @@ def RMSE_all(dat_tot, greater=True, HRES_ground=False, operational_comp=True, no
     
     
     RMSE_NH=comp_RMSE_tail(dat_tot[0], dat_tot[1], operational_comp=operational_comp, greater=greater, HRES_ground=HRES_ground,quant=quant, no_hedging=no_hedging, proper=proper)
+    return RMSE_NH
     RMSE_SH=comp_RMSE_tail(dat_tot[2], dat_tot[3], operational_comp=operational_comp, greater=greater, HRES_ground=HRES_ground,quant=quant, no_hedging=no_hedging, proper=proper)
     RMSE_tropics=comp_RMSE_tail(dat_tot[4], dat_tot[5], operational_comp=operational_comp, greater=greater, HRES_ground=HRES_ground,quant=quant, no_hedging=no_hedging, proper=proper)
     RMSE_EXTRA=comp_RMSE_tail(dat_tot[6], dat_tot[7], operational_comp=operational_comp, greater=greater, HRES_ground=HRES_ground,quant=quant, no_hedging=no_hedging, proper=proper)
