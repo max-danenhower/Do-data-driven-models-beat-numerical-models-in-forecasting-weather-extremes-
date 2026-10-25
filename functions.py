@@ -372,7 +372,7 @@ def comp_RMSE_tail(dat, dat_mem, operational_comp, greater, HRES_ground,quant=No
         ).fit(cov_type="clustered", cluster_entity=True, cluster_time=True)
 
 
-        test_st_pangu=model_cluster_pangu.tstats[0]
+        test_st_pangu=model_cluster_pangu.tstats
         
         
         del dat_pangu, model_cluster_pangu
@@ -392,7 +392,7 @@ def comp_RMSE_tail(dat, dat_mem, operational_comp, greater, HRES_ground,quant=No
         ).fit(cov_type="clustered", cluster_entity=True, cluster_time=True)
 
 
-        test_st_graphcast=model_cluster_graphcast.tstats[0]
+        test_st_graphcast=model_cluster_graphcast.tstats
         
         del dat_graphcast, model_cluster_graphcast
         
@@ -452,7 +452,7 @@ def comp_RMSE_tail(dat, dat_mem, operational_comp, greater, HRES_ground,quant=No
                   data=dat_pangu_graphcast.set_index(["Latlon", "Time"]),
                 ).fit(cov_type="clustered", cluster_entity=True, cluster_time=True)
 
-                test_st_pangu_graphcast=model_cluster_pangu_graphcast.tstats[0]
+                test_st_pangu_graphcast=model_cluster_pangu_graphcast.tstats # took out index for one variable
                 
                 del dat_pangu_graphcast, model_cluster_pangu_graphcast
 
@@ -508,7 +508,7 @@ def comp_RMSE_tail(dat, dat_mem, operational_comp, greater, HRES_ground,quant=No
                   data=dat_graphcast_pangu.set_index(["Latlon", "Time"]),
                 ).fit(cov_type="clustered", cluster_entity=True, cluster_time=True)
 
-                test_st_graphcast_pangu=model_cluster_graphcast_pangu.tstats[0]
+                test_st_graphcast_pangu=model_cluster_graphcast_pangu.tstats
                 
                 del dat_graphcast_pangu, model_cluster_graphcast_pangu
                 
@@ -705,7 +705,8 @@ def comp_RMSE_tail(dat, dat_mem, operational_comp, greater, HRES_ground,quant=No
             ).fit(cov_type="clustered", cluster_entity=True, cluster_time=True)
 
             print('done')
-            test_st_pangu=model_cluster_pangu.tstats[0]
+            print(model_cluster_pangu)
+            test_st_pangu=model_cluster_pangu.tstats # took out index for one variable
             
             
             del dat_pangu, model_cluster_pangu
@@ -726,7 +727,7 @@ def comp_RMSE_tail(dat, dat_mem, operational_comp, greater, HRES_ground,quant=No
             ).fit(cov_type="clustered", cluster_entity=True, cluster_time=True)
 
 
-            test_st_graphcast=model_cluster_graphcast.tstats[0]
+            test_st_graphcast=model_cluster_graphcast.tstats # took out index for one variable
             
             del dat_graphcast, model_cluster_graphcast
             
@@ -771,7 +772,7 @@ def comp_RMSE_tail(dat, dat_mem, operational_comp, greater, HRES_ground,quant=No
                           data=dat_pangu_graphcast.set_index(["Latlon", "Time"]),
                         ).fit(cov_type="clustered", cluster_entity=True, cluster_time=True)
 
-                        test_st_pangu_graphcast=model_cluster_pangu_graphcast.tstats[0]
+                        test_st_pangu_graphcast=model_cluster_pangu_graphcast.tstats
                         
                         del dat_pangu_graphcast, model_cluster_pangu_graphcast
 
@@ -810,7 +811,7 @@ def comp_RMSE_tail(dat, dat_mem, operational_comp, greater, HRES_ground,quant=No
                           data=dat_graphcast_pangu.set_index(["Latlon", "Time"]),
                         ).fit(cov_type="clustered", cluster_entity=True, cluster_time=True)
 
-                        test_st_graphcast_pangu=model_cluster_graphcast_pangu.tstats[0]
+                        test_st_graphcast_pangu=model_cluster_graphcast_pangu.tstats # took out index for one variable
                         
                         del dat_graphcast_pangu, model_cluster_graphcast_pangu
                 
