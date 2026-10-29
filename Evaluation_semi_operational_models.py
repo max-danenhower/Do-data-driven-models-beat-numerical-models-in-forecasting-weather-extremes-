@@ -245,7 +245,6 @@ with open("rmse_results.pkl", "wb") as f:
     pickle.dump(rmse_results, f)
 
 print(f"Saved {len(rmse_results)} RMSE results.")
-'''
 
 with open("rmse_results.pkl", "rb") as f:
     rmse_results = pickle.load(f)
@@ -256,6 +255,7 @@ with open("dat_vars.pkl", "rb") as f:
     dat_vars = pickle.load(f)
 
 globals().update(dat_vars)
+'''
 
 #%%Scorecards
 
@@ -267,7 +267,7 @@ tile_depth_temp_01.set_index("a", fontsize=50)
 tile_depth_temp_99.set_index("b", fontsize=50)
 tile_depth_wind_99.set_index("c", fontsize=50)
 print('saving scorecard 01')
-(tile_depth_temp_01|tile_depth_temp_99|tile_depth_wind_99).savefig('01_rmse_scorecard.pdf')
+#(tile_depth_temp_01|tile_depth_temp_99|tile_depth_wind_99).savefig('01_rmse_scorecard.pdf')
 
 tile_depth_temp_05=tile_depth_all(RMSE_temp_1_05_oper, RMSE_temp_3_05_oper, RMSE_temp_5_05_oper, RMSE_temp_7_05_oper, RMSE_temp_10_05_oper, "Cold extremes")
 tile_depth_temp_95=tile_depth_all(RMSE_temp_1_95_oper, RMSE_temp_3_95_oper, RMSE_temp_5_95_oper, RMSE_temp_7_95_oper, RMSE_temp_10_95_oper, "Hot extremes")
@@ -277,7 +277,7 @@ tile_depth_temp_05.set_index("a", fontsize=50)
 tile_depth_temp_95.set_index("b", fontsize=50)
 tile_depth_wind_95.set_index("c", fontsize=50)
 print('saving scorecard 05')
-(tile_depth_temp_05|tile_depth_temp_95|tile_depth_wind_95).savefig('05_rmse_scorecard.pdf')
+#(tile_depth_temp_05|tile_depth_temp_95|tile_depth_wind_95).savefig('05_rmse_scorecard.pdf')
 
 
 tile_depth_temp_00=tile_depth_all(RMSE_temp_1_00_oper, RMSE_temp_3_00_oper, RMSE_temp_5_00_oper, RMSE_temp_7_00_oper, RMSE_temp_10_00_oper, "2m temperature")
@@ -286,8 +286,8 @@ tile_depth_wind_00=tile_depth_all(RMSE_wind_1_00_oper, RMSE_wind_3_00_oper, RMSE
 tile_depth_temp_00.set_index("a", fontsize=50)
 tile_depth_wind_00.set_index("b", fontsize=50)
 print('saving scorecard all')
-(tile_depth_temp_00|tile_depth_wind_00).savefig('all_rmse_scorecard')
-
+#(tile_depth_temp_00|tile_depth_wind_00).savefig('all_rmse_scorecard')
+'''
 
 # Tile best model table
 
@@ -689,3 +689,4 @@ abc.set_supxlabel("longitude", size=24, fontweight='bold')
 abc.set_supylabel("latitude", size=24, fontweight='bold')
 
 
+'''
