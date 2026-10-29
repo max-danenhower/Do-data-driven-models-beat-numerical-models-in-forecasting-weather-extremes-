@@ -12,13 +12,12 @@ Created on Wed Mar  6 11:54:26 2024
 from datetime import date, datetime
 from plotnine import *
 import pandas as pd
-#import patchworklib as pw
-import geopandas as gpd
 from scipy.stats import t
 import statsmodels
 import numpy as np
 import linearmodels as lm
-
+from plotnine import scale_fill_manual,labs
+import patchworklib as pw
 
 
 #%% Data preparation 
@@ -80,13 +79,14 @@ def prep_time_loc(theoretical, HRES_truth, nwp_det, AI_det_1, AI_det_2, AI_det_3
 
 
 def write_data (dat, operational_comp=True):
-    theoretical=dat[0].values.flatten()
-    HRES_truth=dat[1].values.flatten()
-    nwp_det=dat[2].values.flatten()
-    AI_det_1=dat[3].values.flatten()
-    AI_det_2=dat[4].values.flatten()
+    ### add .to_array() to fetch the variable
+    theoretical=dat[0].to_array().values.flatten()
+    HRES_truth=dat[1].to_array().values.flatten()
+    nwp_det=dat[2].to_array().values.flatten()
+    AI_det_1=dat[3].to_array().values.flatten()
+    AI_det_2=dat[4].to_array().values.flatten()
     if operational_comp==False:
-        AI_det_3=dat[5].values.flatten()
+        AI_det_3=dat[5].to_array().values.flatten()
         
     if operational_comp==False:
         return theoretical, HRES_truth, nwp_det, AI_det_1, AI_det_2, AI_det_3
@@ -113,11 +113,11 @@ def prep_all (theoretical, HRES_truth, nwp_det, AI_det_1, AI_det_2, AI_det_3=Non
     AI_det_2 = AI_det_2.isel(prediction_timedelta = deltatime)
     if operational_comp==False:
         AI_det_3 = AI_det_3.isel(prediction_timedelta = deltatime)
-    
+
     dat_NH_oper=prep_time_loc(theoretical, HRES_truth, nwp_det, AI_det_1, AI_det_2, AI_det_3=AI_det_3, operational_comp=operational_comp, lower_latitude=20,
                              upper_latitude=91)
     dat_mem_NH_oper=write_data(dat_NH_oper, operational_comp=operational_comp)
-    
+
     dat_SH_oper=prep_time_loc(theoretical, HRES_truth, nwp_det, AI_det_1, AI_det_2, AI_det_3=AI_det_3, operational_comp=operational_comp, lower_latitude=-91,
                              upper_latitude=-20)
     dat_mem_SH_oper=write_data(dat_SH_oper, operational_comp=operational_comp)
@@ -364,7 +364,7 @@ def comp_RMSE_tail(dat, dat_mem, operational_comp, greater, HRES_ground,quant=No
         ).fit(cov_type="clustered", cluster_entity=True, cluster_time=True)
 
 
-        test_st_pangu=model_cluster_pangu.tstats[0]
+        test_st_pangu=model_cluster_pangu.tstats
         
         
         del dat_pangu, model_cluster_pangu
@@ -384,7 +384,7 @@ def comp_RMSE_tail(dat, dat_mem, operational_comp, greater, HRES_ground,quant=No
         ).fit(cov_type="clustered", cluster_entity=True, cluster_time=True)
 
 
-        test_st_graphcast=model_cluster_graphcast.tstats[0]
+        test_st_graphcast=model_cluster_graphcast.tstats
         
         del dat_graphcast, model_cluster_graphcast
         
@@ -404,7 +404,7 @@ def comp_RMSE_tail(dat, dat_mem, operational_comp, greater, HRES_ground,quant=No
         ).fit(cov_type="clustered", cluster_entity=True, cluster_time=True)
 
 
-        test_st_fuxi=model_cluster_fuxi.tstats[0]
+        test_st_fuxi=model_cluster_fuxi.tstats
         
         del dat_fuxi, model_cluster_fuxi
             
@@ -444,7 +444,7 @@ def comp_RMSE_tail(dat, dat_mem, operational_comp, greater, HRES_ground,quant=No
                   data=dat_pangu_graphcast.set_index(["Latlon", "Time"]),
                 ).fit(cov_type="clustered", cluster_entity=True, cluster_time=True)
 
-                test_st_pangu_graphcast=model_cluster_pangu_graphcast.tstats[0] # took out index for one variable
+                test_st_pangu_graphcast=model_cluster_pangu_graphcast.tstats # took out index for one variable
                 
                 del dat_pangu_graphcast, model_cluster_pangu_graphcast
 
@@ -469,7 +469,7 @@ def comp_RMSE_tail(dat, dat_mem, operational_comp, greater, HRES_ground,quant=No
                   data=dat_pangu_fuxi.set_index(["Latlon", "Time"]),
                 ).fit(cov_type="clustered", cluster_entity=True, cluster_time=True)
 
-                test_st_pangu_fuxi=model_cluster_pangu_fuxi.tstats[0]
+                test_st_pangu_fuxi=model_cluster_pangu_fuxi.tstats
                 
                 del dat_pangu_fuxi, model_cluster_pangu_fuxi
                 
@@ -500,7 +500,7 @@ def comp_RMSE_tail(dat, dat_mem, operational_comp, greater, HRES_ground,quant=No
                   data=dat_graphcast_pangu.set_index(["Latlon", "Time"]),
                 ).fit(cov_type="clustered", cluster_entity=True, cluster_time=True)
 
-                test_st_graphcast_pangu=model_cluster_graphcast_pangu.tstats[0]
+                test_st_graphcast_pangu=model_cluster_graphcast_pangu.tstats
                 
                 del dat_graphcast_pangu, model_cluster_graphcast_pangu
                 
@@ -524,7 +524,7 @@ def comp_RMSE_tail(dat, dat_mem, operational_comp, greater, HRES_ground,quant=No
                   data=dat_graphcast_fuxi.set_index(["Latlon", "Time"]),
                 ).fit(cov_type="clustered", cluster_entity=True, cluster_time=True)
 
-                test_st_graphcast_fuxi=model_cluster_graphcast_fuxi.tstats[0]
+                test_st_graphcast_fuxi=model_cluster_graphcast_fuxi.tstats
                 
                 del dat_graphcast_fuxi, model_cluster_graphcast_fuxi
                 
@@ -555,7 +555,7 @@ def comp_RMSE_tail(dat, dat_mem, operational_comp, greater, HRES_ground,quant=No
                   data=dat_fuxi_pangu.set_index(["Latlon", "Time"]),
                 ).fit(cov_type="clustered", cluster_entity=True, cluster_time=True)
 
-                test_st_fuxi_pangu=model_cluster_fuxi_pangu.tstats[0]
+                test_st_fuxi_pangu=model_cluster_fuxi_pangu.tstats
                 
                 del dat_fuxi_pangu, model_cluster_fuxi_pangu
                 
@@ -579,7 +579,7 @@ def comp_RMSE_tail(dat, dat_mem, operational_comp, greater, HRES_ground,quant=No
                   data=dat_fuxi_graphcast.set_index(["Latlon", "Time"]),
                 ).fit(cov_type="clustered", cluster_entity=True, cluster_time=True)
 
-                test_st_fuxi_graphcast=model_cluster_fuxi_graphcast.tstats[0]
+                test_st_fuxi_graphcast=model_cluster_fuxi_graphcast.tstats
                 
                 del dat_fuxi_graphcast, model_cluster_fuxi_graphcast
                 
@@ -604,8 +604,7 @@ def comp_RMSE_tail(dat, dat_mem, operational_comp, greater, HRES_ground,quant=No
                 significant_best=np.where(((-test_st_fuxi) < threshold_low_one),1,0)
                 
         
-
-        return RMSE_tail_HRES, RMSE_tail_pangu, RMSE_tail_fuxi, RMSE_tail_graphcast, significant_pangu, significant_fuxi, significant_graphcast, significant_best
+        return RMSE_tail_HRES, RMSE_tail_pangu, RMSE_tail_fuxi, RMSE_tail_graphcast, np.asarray(significant_pangu).item(), np.asarray(significant_fuxi).item(), np.asarray(significant_graphcast).item(), np.asarray(significant_best).item()
         
     else:
 
@@ -692,7 +691,7 @@ def comp_RMSE_tail(dat, dat_mem, operational_comp, greater, HRES_ground,quant=No
               data=dat_pangu.set_index(["Latlon", "Time"]),
             ).fit(cov_type="clustered", cluster_entity=True, cluster_time=True)
 
-            test_st_pangu=model_cluster_pangu.tstats[0] # took out index for one variable
+            test_st_pangu=model_cluster_pangu.tstats # took out index for one variable
             
             
             del dat_pangu, model_cluster_pangu
@@ -712,8 +711,7 @@ def comp_RMSE_tail(dat, dat_mem, operational_comp, greater, HRES_ground,quant=No
               data=dat_graphcast.set_index(["Latlon", "Time"]),
             ).fit(cov_type="clustered", cluster_entity=True, cluster_time=True)
 
-
-            test_st_graphcast=model_cluster_graphcast.tstats[0] # took out index for one variable
+            test_st_graphcast=model_cluster_graphcast.tstats # took out index for one variable
             
             del dat_graphcast, model_cluster_graphcast
             
@@ -758,7 +756,7 @@ def comp_RMSE_tail(dat, dat_mem, operational_comp, greater, HRES_ground,quant=No
                           data=dat_pangu_graphcast.set_index(["Latlon", "Time"]),
                         ).fit(cov_type="clustered", cluster_entity=True, cluster_time=True)
 
-                        test_st_pangu_graphcast=model_cluster_pangu_graphcast.tstats[0]
+                        test_st_pangu_graphcast=model_cluster_pangu_graphcast.tstats
                         
                         del dat_pangu_graphcast, model_cluster_pangu_graphcast
 
@@ -797,7 +795,7 @@ def comp_RMSE_tail(dat, dat_mem, operational_comp, greater, HRES_ground,quant=No
                           data=dat_graphcast_pangu.set_index(["Latlon", "Time"]),
                         ).fit(cov_type="clustered", cluster_entity=True, cluster_time=True)
 
-                        test_st_graphcast_pangu=model_cluster_graphcast_pangu.tstats[0] # took out index for one variable
+                        test_st_graphcast_pangu=model_cluster_graphcast_pangu.tstats # took out index for one variable
                         
                         del dat_graphcast_pangu, model_cluster_graphcast_pangu
                 
@@ -817,32 +815,42 @@ def comp_RMSE_tail(dat, dat_mem, operational_comp, greater, HRES_ground,quant=No
                 
                 significant_best=np.where(((-test_st_graphcast) < threshold_low_one),1,0)
                     
-        return RMSE_tail_HRES, RMSE_tail_pangu, RMSE_tail_graphcast, significant_pangu, significant_graphcast, significant_best
+        return RMSE_tail_HRES, RMSE_tail_pangu, RMSE_tail_graphcast, np.asarray(significant_pangu).item(), np.asarray(significant_graphcast).item(), np.asarray(significant_best).item()
     
 
 
 def RMSE_all(dat_tot, greater=True, HRES_ground=False, operational_comp=True, no_hedging=False, quant=None, proper=False):
-    
-    
-    
+
+    print('------')
+
+    print('comp RMSE NH')
     RMSE_NH=comp_RMSE_tail(dat_tot[0], dat_tot[1], operational_comp=operational_comp, greater=greater, HRES_ground=HRES_ground,quant=quant, no_hedging=no_hedging, proper=proper)
-    return RMSE_NH
+    print('comp RMSE SH')
     RMSE_SH=comp_RMSE_tail(dat_tot[2], dat_tot[3], operational_comp=operational_comp, greater=greater, HRES_ground=HRES_ground,quant=quant, no_hedging=no_hedging, proper=proper)
+    print('comp RMSE tropic')
     RMSE_tropics=comp_RMSE_tail(dat_tot[4], dat_tot[5], operational_comp=operational_comp, greater=greater, HRES_ground=HRES_ground,quant=quant, no_hedging=no_hedging, proper=proper)
+    print('comp RMSE extra')
     RMSE_EXTRA=comp_RMSE_tail(dat_tot[6], dat_tot[7], operational_comp=operational_comp, greater=greater, HRES_ground=HRES_ground,quant=quant, no_hedging=no_hedging, proper=proper)
+    print('comp RMSE arc')
     RMSE_ARC=comp_RMSE_tail(dat_tot[8], dat_tot[9], operational_comp=operational_comp, greater=greater, HRES_ground=HRES_ground,quant=quant, no_hedging=no_hedging, proper=proper)
+    print('comp RMSE ant')
     RMSE_ANT=comp_RMSE_tail(dat_tot[10], dat_tot[11], operational_comp=operational_comp, greater=greater, HRES_ground=HRES_ground,quant=quant, no_hedging=no_hedging, proper=proper)
     
-    
+    print('comp RMSE eu')
     RMSE_EU=comp_RMSE_tail(dat_tot[12], dat_tot[13], operational_comp=operational_comp, greater=greater, HRES_ground=HRES_ground,quant=quant, no_hedging=no_hedging, proper=proper)
+    print('comp RMSE nam')
     RMSE_NAM=comp_RMSE_tail(dat_tot[14], dat_tot[15], operational_comp=operational_comp, greater=greater, HRES_ground=HRES_ground,quant=quant, no_hedging=no_hedging, proper=proper)
+    print('comp RMSE nat')
     RMSE_NAT=comp_RMSE_tail(dat_tot[16], dat_tot[17], operational_comp=operational_comp, greater=greater, HRES_ground=HRES_ground,quant=quant, no_hedging=no_hedging, proper=proper)
+    print('comp RMSE nap')
     RMSE_NAP=comp_RMSE_tail(dat_tot[18], dat_tot[19], operational_comp=operational_comp, greater=greater, HRES_ground=HRES_ground,quant=quant, no_hedging=no_hedging, proper=proper)
+    print('comp RMSE ea')
     RMSE_EA=comp_RMSE_tail(dat_tot[20], dat_tot[21], operational_comp=operational_comp, greater=greater, HRES_ground=HRES_ground,quant=quant, no_hedging=no_hedging, proper=proper)
+    print('comp RMSE anz')
     RMSE_ANZ=comp_RMSE_tail(dat_tot[22], dat_tot[23], operational_comp=operational_comp, greater=greater, HRES_ground=HRES_ground,quant=quant, no_hedging=no_hedging, proper=proper)
-    
+    print('comp RMSE all')
     RMSE=comp_RMSE_tail(dat_tot[24], dat_tot[25], operational_comp=operational_comp, greater=greater, HRES_ground=HRES_ground,quant=quant, no_hedging=no_hedging, proper=proper)
-    
+
     RMSE=np.array([RMSE_NH, RMSE_SH,RMSE_tropics,RMSE_EXTRA,RMSE_ARC,RMSE_ANT,
                 RMSE_EU,RMSE_NAM,RMSE_NAT,RMSE_NAP,RMSE_EA,RMSE_ANZ, RMSE])
     
@@ -1183,13 +1191,13 @@ def RMSE_point_global(dat, dat_mem, quant=0.95, greater=True, HRES_ground=True, 
         
     if no_hedging==True:
         
-        threshold_nwp=dat[2].chunk(dict(time=-1)).quantile(quant,dim='time').values.flatten()
+        threshold_nwp=dat[2].chunk(dict(time=-1)).quantile(quant,dim='time').to_array().values.flatten()
 
         threshold_nwp=np.tile(threshold_nwp, len(dat[0].time))
         
     else:
     
-        threshold_theoretical=dat[0].chunk(dict(time=-1)).quantile(quant,dim='time').values.flatten()
+        threshold_theoretical=dat[0].chunk(dict(time=-1)).quantile(quant,dim='time').to_array().values.flatten()
 
         threshold_theoretical=np.tile(threshold_theoretical, len(dat[0].time))
     
@@ -1488,7 +1496,7 @@ def RMSE_point_global(dat, dat_mem, quant=0.95, greater=True, HRES_ground=True, 
                 formula=("Values ~ 1"),
                 data=lat_lon_data).fit(cov_type="clustered", cluster_entity=False, cluster_time=True)
                  
-                t_stat=model_cluster.tstats[0]
+                t_stat=model_cluster.tstats
 
 
     

@@ -12,24 +12,40 @@ import statsmodels.api as sm
 from statsmodels.formula.api import mixedlm
 import linearmodels as lm
 import zarr
+import pickle
+from functions import prep_all, RMSE_all, tile_depth_all,qqplot_all,qqplot_extreme, RMSE_point_global, plot_RMSE_line_lat, plot_RMSE_magnitude, plot_RMSE_point_global, p_val_cor, tile_comp_plot
+from plotnine import *
+import patchworklib as pw
+import geopandas as gpd
 
 
 # Define variables and time-range
-
+'''
 
 variables_s = ['2m_temperature','10m_wind_speed']
 
+start = '2020-01-01 00:00:00'
+end = '2020-12-16 12:00:00'
+
 
 #%% ERA5
-
-ERA5=xr.open_zarr('gs://weatherbench2/datasets/era5/1959-2023_01_10-6h-240x121_equiangular_with_poles_conservative.zarr')
-
+#ERA5=xr.open_zarr('gs://weatherbench2/datasets/era5/1959-2023_01_10-6h-240x121_equiangular_with_poles_conservative.zarr')
+print('opening zarr')
+ERA5 = xr.open_zarr(
+    'gs://weatherbench2/datasets/era5/1959-2023_01_10-6h-240x121_equiangular_with_poles_conservative.zarr',
+    storage_options={"token": "anon"},
+    consolidated=True,
+)
 #Keep only midnight 
 
+ERA5 = ERA5[variables_s].sel( time=slice(start,'2020-12-26 12:00:00'))
+
+print('getting 00 and 12 time steps')
 ERA5 = ERA5.where(np.logical_or(ERA5['time.hour'] == 00, ERA5['time.hour'] == 12), drop=True)
 
 #print(ERA5)
 
+print('reading temp and wind')
 temp_2m = ERA5[variables_s[0]]
 wind_speed = ERA5[variables_s[1]]
 
@@ -40,7 +56,15 @@ cos_weights=np.tile(cos_weights/np.mean(cos_weights), len(ERA5.time)*len(ERA5.lo
 
 #%% IFS HRES truth
 
-HRES_truth=xr.open_zarr('gs://weatherbench2/datasets/hres/2016-2022-0012-240x121_equiangular_with_poles_conservative.zarr', chunks= {'time':8})
+HRES_read=xr.open_zarr(
+    'gs://weatherbench2/datasets/hres/2016-2022-0012-240x121_equiangular_with_poles_conservative.zarr', 
+    storage_options={"token":"anon"},
+    consolidated=True,
+)
+
+HRES_truth = HRES_read
+
+HRES_truth = HRES_truth[variables_s].sel( time=slice(start,'2020-12-26 12:00:00'))
 
 HRES_truth = HRES_truth.where(np.logical_or(HRES_truth['time.hour'] == 00, HRES_truth['time.hour'] == 12), drop=True)
 
@@ -53,11 +77,9 @@ HRES_truth_wind_speed = HRES_truth[variables_s[1]]
 
 midnights=list(range(4,41,4))
 
-start = '2020-01-01 00:00:00'
-end = '2020-12-16 12:00:00'
 #zarr open
 
-HRES=xr.open_zarr('gs://weatherbench2/datasets/hres/2016-2022-0012-240x121_equiangular_with_poles_conservative.zarr', chunks= {'time':8})
+HRES = HRES_read
 
 HRES = HRES[variables_s].sel( time=slice(start,end))
 
@@ -75,7 +97,11 @@ HRES_temp_2m = HRES[variables_s[0]]
 midnights=list(range(3,41,4))
 
 #zarr open
-pangu_oper=xr.open_zarr('gs://weatherbench2/datasets/pangu_hres_init/2020_0012_240x121_equiangular_with_poles_conservative.zarr', chunks= {'time':8})
+pangu_oper=xr.open_zarr(
+    'gs://weatherbench2/datasets/pangu_hres_init/2020_0012_240x121_equiangular_with_poles_conservative.zarr',
+    storage_options={"token":"anon"},
+    consolidated=True,
+)
 
 # check zarr content
 #print(pangu)
@@ -97,7 +123,11 @@ pangu_temp_2m_oper = pangu_oper[variables_s[0]]
 
 midnights=list(range(3,41,4))
 
-graphcast_oper=xr.open_zarr('gs://weatherbench2/datasets/graphcast_hres_init/2020/date_range_2019-11-16_2021-02-01_12_hours-240x121_equiangular_with_poles_conservative.zarr', chunks= {'time':8})
+graphcast_oper=xr.open_zarr(
+    'gs://weatherbench2/datasets/graphcast_hres_init/2020/date_range_2019-11-16_2021-02-01_12_hours-240x121_equiangular_with_poles_conservative.zarr', 
+    storage_options={"token":"anon"},
+    consolidated=True,
+)
 
 #print(graphcast_oper)
 
@@ -111,8 +141,21 @@ graphcast_oper = graphcast_oper.where(np.logical_or(graphcast_oper['time.hour'] 
 graphcast_wind_speed_oper = graphcast_oper[variables_s[1]]
 graphcast_temp_2m_oper = graphcast_oper[variables_s[0]]
 
+temp_2m = xr.open_dataset('2020_data\\temp_2m.nc')
+wind_speed = xr.open_dataset('2020_data\\wind_speed.nc')
 
-#%% Data import
+HRES_temp_2m = xr.open_dataset('2020_data\\hres_temp_2m.nc')
+HRES_wind_speed = xr.open_dataset('2020_data\\hres_wind_speed.nc')
+
+HRES_truth_temp_2m = xr.open_dataset('2020_data\\hres_truth_temp_2m.nc')
+HRES_truth_wind_speed = xr.open_dataset('2020_data\\hres_truth_wind_speed.nc')
+
+pangu_temp_2m_oper = xr.open_dataset('2020_data\\pangu_temp_2m_oper.nc')
+pangu_wind_speed_oper = xr.open_dataset('2020_data\\pangu_wind_speed_oper.nc')
+
+graphcast_temp_2m_oper = xr.open_dataset('2020_data\\graphcast_temp_2m_oper.nc')
+graphcast_wind_speed_oper = xr.open_dataset('2020_data\\graphcast_wind_speed_oper.nc')
+
 
 #N.B. Remmember to use operational_comp=True throughout (comparison of semi-operational models and not reanalysis models ). Deafult is usually True but double check if something does not work or you get some unexpected results.
 # More documentaion is available in the functions file
@@ -128,58 +171,91 @@ dat_wind_3=prep_all(wind_speed, HRES_truth_wind_speed, HRES_wind_speed, pangu_wi
 dat_wind_5=prep_all(wind_speed, HRES_truth_wind_speed, HRES_wind_speed, pangu_wind_speed_oper, graphcast_wind_speed_oper,days_ahead=5)
 dat_wind_7=prep_all(wind_speed, HRES_truth_wind_speed, HRES_wind_speed, pangu_wind_speed_oper, graphcast_wind_speed_oper,days_ahead=7)
 dat_wind_10=prep_all(wind_speed, HRES_truth_wind_speed, HRES_wind_speed, pangu_wind_speed_oper, graphcast_wind_speed_oper,days_ahead=10)
+dat_vars = {
+    name: value
+    for name, value in globals().copy().items()
+    if name.startswith("dat_")
+}
 
+# Save to disk
+with open("dat_vars.pkl", "wb") as f:
+    pickle.dump(dat_vars, f)
+
+print(f"Saved {len(dat_vars)} dat results.")
 
 #%% RMSE computation
-
+print('comp 01 temps')
 RMSE_temp_1_01_oper=RMSE_all(dat_temp_1, operational_comp=True, quant=0.01, greater=False)
 RMSE_temp_3_01_oper=RMSE_all(dat_temp_3, operational_comp=True, quant=0.01, greater=False)
 RMSE_temp_5_01_oper=RMSE_all(dat_temp_5, operational_comp=True, quant=0.01, greater=False)
 RMSE_temp_7_01_oper=RMSE_all(dat_temp_7, operational_comp=True, quant=0.01, greater=False)
 RMSE_temp_10_01_oper=RMSE_all(dat_temp_10, operational_comp=True, quant=0.01, greater=False)
-
+print('comp 05 temps')
 RMSE_temp_1_05_oper=RMSE_all(dat_temp_1, operational_comp=True, quant=0.05, greater=False)
 RMSE_temp_3_05_oper=RMSE_all(dat_temp_3, operational_comp=True, quant=0.05, greater=False)
 RMSE_temp_5_05_oper=RMSE_all(dat_temp_5, operational_comp=True, quant=0.05, greater=False)
 RMSE_temp_7_05_oper=RMSE_all(dat_temp_7, operational_comp=True, quant=0.05, greater=False)
 RMSE_temp_10_05_oper=RMSE_all(dat_temp_10, operational_comp=True, quant=0.05, greater=False)
-
+print('comp all temps')
 RMSE_temp_1_00_oper=RMSE_all(dat_temp_1, operational_comp=True, greater=True)
 RMSE_temp_3_00_oper=RMSE_all(dat_temp_3, operational_comp=True, greater=True)
 RMSE_temp_5_00_oper=RMSE_all(dat_temp_5, operational_comp=True, greater=True)
 RMSE_temp_7_00_oper=RMSE_all(dat_temp_7, operational_comp=True, greater=True)
 RMSE_temp_10_00_oper=RMSE_all(dat_temp_10, operational_comp=True, greater=True)
-
+print('comp 95 temps')
 RMSE_temp_1_95_oper=RMSE_all(dat_temp_1, operational_comp=True, quant=0.95, greater=True)
 RMSE_temp_3_95_oper=RMSE_all(dat_temp_3, operational_comp=True, quant=0.95, greater=True)
 RMSE_temp_5_95_oper=RMSE_all(dat_temp_5, operational_comp=True, quant=0.95, greater=True)
 RMSE_temp_7_95_oper=RMSE_all(dat_temp_7, operational_comp=True, quant=0.95, greater=True)
 RMSE_temp_10_95_oper=RMSE_all(dat_temp_10, operational_comp=True, quant=0.95, greater=True)
-
+print('comp 99 temps')
 RMSE_temp_1_99_oper=RMSE_all(dat_temp_1, operational_comp=True, quant=0.99, greater=True)
 RMSE_temp_3_99_oper=RMSE_all(dat_temp_3, operational_comp=True, quant=0.99, greater=True)
 RMSE_temp_5_99_oper=RMSE_all(dat_temp_5, operational_comp=True, quant=0.99, greater=True)
 RMSE_temp_7_99_oper=RMSE_all(dat_temp_7, operational_comp=True, quant=0.99, greater=True)
 RMSE_temp_10_99_oper=RMSE_all(dat_temp_10, operational_comp=True, quant=0.99, greater=True)
-
+print('comp all winds')
 RMSE_wind_1_00_oper=RMSE_all(dat_wind_1, operational_comp=True, greater=True)
 RMSE_wind_3_00_oper=RMSE_all(dat_wind_3, operational_comp=True, greater=True)
 RMSE_wind_5_00_oper=RMSE_all(dat_wind_5, operational_comp=True, greater=True)
 RMSE_wind_7_00_oper=RMSE_all(dat_wind_7, operational_comp=True, greater=True)
 RMSE_wind_10_00_oper=RMSE_all(dat_wind_10, operational_comp=True, greater=True)
-
+print('comp 95 winds')
 RMSE_wind_1_95_oper=RMSE_all(dat_wind_1, operational_comp=True, quant=0.95, greater=True)
 RMSE_wind_3_95_oper=RMSE_all(dat_wind_3, operational_comp=True, quant=0.95, greater=True)
 RMSE_wind_5_95_oper=RMSE_all(dat_wind_5, operational_comp=True, quant=0.95, greater=True)
 RMSE_wind_7_95_oper=RMSE_all(dat_wind_7, operational_comp=True, quant=0.95, greater=True)
 RMSE_wind_10_95_oper=RMSE_all(dat_wind_10, operational_comp=True, quant=0.95, greater=True)
-
+print('comp 99 winds')
 RMSE_wind_1_99_oper=RMSE_all(dat_wind_1, operational_comp=True, quant=0.99, greater=True)
 RMSE_wind_3_99_oper=RMSE_all(dat_wind_3, operational_comp=True, quant=0.99, greater=True)
-RMSE_wind_5_99_oper=RMSE_all(dat_wind_5, operational_comp=True, quant=0.99, greater=True)
+RMSE_wind_5_99_oper=RMSE_all(dat_wind_5, operational_comp=True, quant=0.99, greater=True) 
 RMSE_wind_7_99_oper=RMSE_all(dat_wind_7, operational_comp=True, quant=0.99, greater=True)
 RMSE_wind_10_99_oper=RMSE_all(dat_wind_10, operational_comp=True, quant=0.99, greater=True)
 
+# Collect all RMSE results
+rmse_results = {
+    name: value
+    for name, value in globals().copy().items()
+    if name.startswith("RMSE_")
+}
+
+# Save to disk
+with open("rmse_results.pkl", "wb") as f:
+    pickle.dump(rmse_results, f)
+
+print(f"Saved {len(rmse_results)} RMSE results.")
+'''
+
+with open("rmse_results.pkl", "rb") as f:
+    rmse_results = pickle.load(f)
+
+globals().update(rmse_results)
+
+with open("dat_vars.pkl", "rb") as f:
+    dat_vars = pickle.load(f)
+
+globals().update(dat_vars)
 
 #%%Scorecards
 
@@ -190,8 +266,8 @@ tile_depth_wind_99=tile_depth_all(RMSE_wind_1_99_oper, RMSE_wind_3_99_oper, RMSE
 tile_depth_temp_01.set_index("a", fontsize=50)
 tile_depth_temp_99.set_index("b", fontsize=50)
 tile_depth_wind_99.set_index("c", fontsize=50)
-
-(tile_depth_temp_01|tile_depth_temp_99|tile_depth_wind_99).savefig()
+print('saving scorecard 01')
+(tile_depth_temp_01|tile_depth_temp_99|tile_depth_wind_99).savefig('01_rmse_scorecard.pdf')
 
 tile_depth_temp_05=tile_depth_all(RMSE_temp_1_05_oper, RMSE_temp_3_05_oper, RMSE_temp_5_05_oper, RMSE_temp_7_05_oper, RMSE_temp_10_05_oper, "Cold extremes")
 tile_depth_temp_95=tile_depth_all(RMSE_temp_1_95_oper, RMSE_temp_3_95_oper, RMSE_temp_5_95_oper, RMSE_temp_7_95_oper, RMSE_temp_10_95_oper, "Hot extremes")
@@ -200,7 +276,8 @@ tile_depth_wind_95=tile_depth_all(RMSE_wind_1_95_oper, RMSE_wind_3_95_oper, RMSE
 tile_depth_temp_05.set_index("a", fontsize=50)
 tile_depth_temp_95.set_index("b", fontsize=50)
 tile_depth_wind_95.set_index("c", fontsize=50)
-(tile_depth_temp_05|tile_depth_temp_95|tile_depth_wind_95).savefig()
+print('saving scorecard 05')
+(tile_depth_temp_05|tile_depth_temp_95|tile_depth_wind_95).savefig('05_rmse_scorecard.pdf')
 
 
 tile_depth_temp_00=tile_depth_all(RMSE_temp_1_00_oper, RMSE_temp_3_00_oper, RMSE_temp_5_00_oper, RMSE_temp_7_00_oper, RMSE_temp_10_00_oper, "2m temperature")
@@ -208,7 +285,8 @@ tile_depth_wind_00=tile_depth_all(RMSE_wind_1_00_oper, RMSE_wind_3_00_oper, RMSE
 
 tile_depth_temp_00.set_index("a", fontsize=50)
 tile_depth_wind_00.set_index("b", fontsize=50)
-(tile_depth_temp_00|tile_depth_wind_00).savefig()
+print('saving scorecard all')
+(tile_depth_temp_00|tile_depth_wind_00).savefig('all_rmse_scorecard')
 
 
 # Tile best model table
@@ -255,8 +333,8 @@ RMSE_tile_temp_99.set_index("e", fontsize=30)
 RMSE_tile_wind_global.set_index("h", fontsize=30)  
 RMSE_tile_wind_95.set_index("c", fontsize=30)  
 RMSE_tile_wind_99.set_index("f", fontsize=30)    
-
-((RMSE_tile_temp_05|RMSE_tile_temp_95|RMSE_tile_wind_95)/(RMSE_tile_temp_01|RMSE_tile_temp_99|RMSE_tile_wind_99)/(RMSE_tile_temp_global|RMSE_tile_wind_global)).savefig()
+print('saving best model table')
+((RMSE_tile_temp_05|RMSE_tile_temp_95|RMSE_tile_wind_95)/(RMSE_tile_temp_01|RMSE_tile_temp_99|RMSE_tile_wind_99)/(RMSE_tile_temp_global|RMSE_tile_wind_global)).savefig('best_model_table.pdf')
 
 
 #%% QQ-plots
@@ -319,7 +397,8 @@ qq_world=(qq_co|qq_wa|qq_wi)
 #%% Figures grid-point level significance and magnitude
 
 
-world = gpd.read_file(gpd.datasets.get_path("naturalearth_lowres"))
+#world = gpd.read_file(gpd.datasets.get_path("naturalearth_lowres"))
+world = gpd.read_file("https://naturalearth.s3.amazonaws.com/110m_cultural/ne_110m_admin_0_countries.zip")
 
 te_1_00=RMSE_point_global(dat_temp_1[24], dat_temp_1[25], quant=0.00, greater=True, HRES_ground=False, operational_comp=True, fixed_number=False)
 co_1_05=RMSE_point_global(dat_temp_1[24], dat_temp_1[25], quant=0.05, greater=False, HRES_ground=False, operational_comp=True, fixed_number=False)
@@ -327,7 +406,7 @@ wa_1_95=RMSE_point_global(dat_temp_1[24], dat_temp_1[25], quant=0.95, greater=Tr
 wi_1_00=RMSE_point_global(dat_wind_1[24], dat_wind_1[25], quant=0.00, greater=True, HRES_ground=False, operational_comp=True, fixed_number=False)
 wi_1_95=RMSE_point_global(dat_wind_1[24], dat_wind_1[25], quant=0.95, greater=True, HRES_ground=False, operational_comp=True, fixed_number=False)
 
-        
+
 model_colors = {'HRES': 'red', 'Pangu': '40B0A6', 'Fuxi': '99DDFF', 'Graphcast':'E1BA6A', 'DL':'blue'}
 
 te_1_00=p_val_cor(te_1_00)
